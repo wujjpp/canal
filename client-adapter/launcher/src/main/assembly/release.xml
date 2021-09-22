@@ -64,6 +64,13 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>../grpc/src/main/resources/grpc</directory>
+            <outputDirectory>/conf/grpc</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>../rdb/src/main/resources/</directory>
             <outputDirectory>/conf</outputDirectory>
             <excludes>

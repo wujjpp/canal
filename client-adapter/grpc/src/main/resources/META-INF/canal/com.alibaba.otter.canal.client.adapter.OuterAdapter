@@ -1,0 +1,1 @@
+grpc=com.alibaba.otter.canal.client.adapter.grpc.GrpcAdapter
