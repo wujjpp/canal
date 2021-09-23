@@ -1,5 +1,5 @@
 /**
- * Created by Wu Jian Ping on - 2021/09/15.
+ * Created by Wu Jian Ping on - 2021/09/22.
  */
 
 package com.alibaba.otter.canal.client.adapter.grpc.service;

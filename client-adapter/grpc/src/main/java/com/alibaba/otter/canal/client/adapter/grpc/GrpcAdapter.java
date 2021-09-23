@@ -1,5 +1,5 @@
 /**
- * Created by Wu Jian Ping on - 2021/09/15.
+ * Created by Wu Jian Ping on - 2021/09/22.
  */
 
 package com.alibaba.otter.canal.client.adapter.grpc;
@@ -58,7 +58,8 @@ public class GrpcAdapter implements OuterAdapter {
         }
 
         Map<String, String> properties = configuration.getProperties();
-        String serviceUrl = properties.get("serviceUrl");
+        String hosts = properties.get("hosts");
+        int poolSize = Integer.parseInt(properties.get("poolSize"));
         String sign = properties.get("sign");
 
         try {
@@ -96,7 +97,7 @@ public class GrpcAdapter implements OuterAdapter {
                 logger.debug("mappingConfigCache:{}", JSON.toJSONString(this.mappingConfigCache));
             }
 
-            this.grpcTemplate = new GrpcTemplate(serviceUrl, sign);
+            this.grpcTemplate = new GrpcTemplate(hosts, poolSize, sign);
             this.grpcSyncService = new GrpcSyncService(this.grpcTemplate);
 
             this.configMonitor = new GrpcConfigMonitor();

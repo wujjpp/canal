@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.alibaba.otter.canal.client.adapter.grpc";
+option java_outer_classname = "NotifyProto";
+option objc_class_prefix = "NTY";
+
+package canal.adapter.grpc;
+
+import "google/protobuf/empty.proto";
+
+service NotifyService {
+  rpc notify (NotifyRequest) returns (NotifyResponse) {}
+  rpc count(google.protobuf.Empty) returns (CountResponse){}
+}
+
+message NotifyRequest {
+  string database = 1;
+  string table = 2;
+  string action = 3;
+  string data = 4;
+  string sign = 5;
+}
+
+message NotifyResponse {
+  enum Status {
+    Fail = 0;
+    Success = 1;
+  }
+  Status status = 1;
+}
+
+message CountResponse{
+  int32 count = 1;
+}
