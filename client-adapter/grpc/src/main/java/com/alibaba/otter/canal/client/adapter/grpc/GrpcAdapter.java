@@ -240,5 +240,8 @@ public class GrpcAdapter implements OuterAdapter {
         if (this.configMonitor != null) {
             this.configMonitor.destroy();
         }
+        if (this.grpcTemplate != null) {
+            this.grpcTemplate.destroy();
+        }
     }
 }

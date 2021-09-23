@@ -57,6 +57,10 @@ public class GrpcTemplate {
         if (this.clients.size() == 0) {
             throw new RuntimeException("Grpc clients is empty, please confirm `hosts` and `poolSize` property");
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Client count: {}", this.clients.size());
+        }
     }
 
     public void insert(String database, String table, Map<String, Object> data) {
@@ -101,6 +105,15 @@ public class GrpcTemplate {
     private NotifyServiceClient getClient() {
         int index = this.seed.nextInt(this.clients.size());
         return this.clients.get(index);
+    }
+
+    public void destroy() {
+        for (NotifyServiceClient client : this.clients) {
+            try {
+                client.destroy();
+            } catch (Exception e) {
+            }
+        }
     }
 
     public static class NotifyServiceClient {
