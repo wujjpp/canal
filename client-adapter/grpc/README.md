@@ -11,7 +11,9 @@
       - name: grpc
         key: user_grpc
         properties:
-          serviceUrl: http://127.0.0.1/sync
+          # 逻辑说明："hosts"用于指定多个grpc server, poolSize指定为每个host创建多少个Client，主要用于负载均衡
+          hosts: 127.0.0.1:9001,127.0.0.1:9002
+          poolSize: 2
           sign: 123
 ```
 
