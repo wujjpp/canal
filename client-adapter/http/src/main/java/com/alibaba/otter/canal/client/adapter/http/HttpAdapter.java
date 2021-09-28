@@ -92,8 +92,8 @@ public class HttpAdapter implements OuterAdapter {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("mappingConfig:{}", JSON.toJSONString(this.mappingConfig));
-                logger.debug("mappingConfigCache:{}", JSON.toJSONString(this.mappingConfigCache));
+                logger.debug("mappingConfig: {}", JSON.toJSONString(this.mappingConfig));
+                logger.debug("mappingConfigCache: {}", JSON.toJSONString(this.mappingConfigCache));
             }
 
             this.httpTemplate = new HttpTemplate(serviceUrl, sign);

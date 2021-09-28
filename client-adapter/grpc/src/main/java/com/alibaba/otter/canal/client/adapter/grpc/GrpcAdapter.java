@@ -93,8 +93,8 @@ public class GrpcAdapter implements OuterAdapter {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("mappingConfig:{}", JSON.toJSONString(this.mappingConfig));
-                logger.debug("mappingConfigCache:{}", JSON.toJSONString(this.mappingConfigCache));
+                logger.debug("mappingConfig: {}", JSON.toJSONString(this.mappingConfig));
+                logger.debug("mappingConfigCache: {}", JSON.toJSONString(this.mappingConfigCache));
             }
 
             this.grpcTemplate = new GrpcTemplate(hosts, poolSize, sign);
