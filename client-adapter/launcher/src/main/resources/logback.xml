@@ -34,31 +34,42 @@
 	</appender>
 
 	<logger name="com.alibaba.otter.canal.client.adapter.hbase" additivity="false">
-		<level value="DEBUG" />
+		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
-	<logger name="com.alibaba.otter.canal.client.adapter.es" additivity="false">
-		<level value="DEBUG" />
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="CANAL-ROOT" />
-	</logger>
-	<logger name="com.alibaba.otter.canal.client.adapter.rdb" additivity="false">
-		<level value="DEBUG" />
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="CANAL-ROOT" />
-	</logger>
-	<logger name="com.alibaba.otter.canal.client.adapter.logger" additivity="false">
-		<level value="DEBUG" />
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="CANAL-ROOT" />
-	</logger>
+
 	<logger name="com.alibaba.otter.canal.client.adapter.support" additivity="false">
 		<level value="INFO" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
+
+	<logger name="com.alibaba.otter.canal.client.adapter.es" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+
+	<logger name="com.alibaba.otter.canal.client.adapter.rdb" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+
+	<logger name="com.alibaba.otter.canal.client.adapter.logger" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+
 	<logger name="com.alibaba.otter.canal.client.adapter.http" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+
+	<logger name="com.alibaba.otter.canal.client.adapter.tcp" additivity="false">
 		<level value="DEBUG" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="CANAL-ROOT" />

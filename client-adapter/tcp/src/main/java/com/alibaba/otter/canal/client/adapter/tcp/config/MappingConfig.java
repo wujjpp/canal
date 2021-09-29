@@ -1,8 +1,8 @@
 /**
- * Created by Wu Jian Ping on - 2021/09/22.
+ * Created by Wu Jian Ping on - 2021/09/28.
  */
 
-package com.alibaba.otter.canal.client.adapter.grpc.config;
+package com.alibaba.otter.canal.client.adapter.tcp.config;
 
 import java.util.*;
 
@@ -19,7 +19,7 @@ public class MappingConfig implements AdapterConfig {
 
     private String outerAdapterKey; // 对应适配器的key
 
-    private GrpcMapping grpcMapping; // grpc映射配置
+    private TcpMapping tcpMapping;
 
     @Override
     public String getDataSourceKey() {
@@ -57,17 +57,17 @@ public class MappingConfig implements AdapterConfig {
     public void validate() {
     }
 
-    public GrpcMapping getGrpcMapping() {
-        return grpcMapping;
+    public TcpMapping getTcpMapping() {
+        return tcpMapping;
     }
 
-    public void setGrpcMapping(GrpcMapping grpcMapping) {
-        this.grpcMapping = grpcMapping;
+    public void setTcpMapping(TcpMapping tcpMapping) {
+        this.tcpMapping = tcpMapping;
     }
 
     @Override
-    public GrpcMapping getMapping() {
-        return this.grpcMapping;
+    public TcpMapping getMapping() {
+        return this.tcpMapping;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class MappingConfig implements AdapterConfig {
         return JSON.toJSONString(this);
     }
 
-    public static class GrpcMapping implements AdapterMapping {
+    public static class TcpMapping implements AdapterMapping {
         private String etlCondition; // etl条件sql
         private List<MonitorTable> monitorTables = new ArrayList<>();
         private EtlSetting etlSetting;

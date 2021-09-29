@@ -1,15 +1,14 @@
 dataSourceKey: defaultDS
 destination: example
 groupId: g1
-outerAdapterKey: example_http # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
+outerAdapterKey: example_tcp # 为了统一，这个还是需要填的，并且需要与application.yml 中的 outerAdapters[n].key做对应
 
-httpMapping:
+tcpMapping:
   # database和table必须存在于monitorTables中
   etlSetting:
     database: logstore
     table: user
     condition: "where updateTime >= {}"
-    batchSize: 3000
 
   monitorTables: # 监控哪些表
     - tableName: logstore.user

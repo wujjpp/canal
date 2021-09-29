@@ -57,6 +57,13 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>../rdb/src/main/resources/</directory>
+            <outputDirectory>/conf</outputDirectory>
+            <excludes>
+                <exclude>META-INF/**</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
             <directory>../http/src/main/resources/http</directory>
             <outputDirectory>/conf/http</outputDirectory>
             <includes>
@@ -71,11 +78,11 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>../rdb/src/main/resources/</directory>
-            <outputDirectory>/conf</outputDirectory>
-            <excludes>
-                <exclude>META-INF/**</exclude>
-            </excludes>
+            <directory>../tcp/src/main/resources/tcp</directory>
+            <outputDirectory>/conf/tcp</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>target</directory>

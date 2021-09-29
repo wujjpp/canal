@@ -112,9 +112,17 @@ canal.conf:
             #     serviceUrl: http://127.0.0.1:9001/sync1
             #     sign: 123
 
-            - name: grpc
-              key: example_grpc
-              properties:
-                hosts: 127.0.0.1:9001,127.0.0.1:9001
-                poolSize: 1
-                sign: 123
+            # - name: grpc
+            #   key: example_grpc
+            #   properties:
+            #     hosts: 127.0.0.1:9001,127.0.0.1:9001
+            #     poolSize: 1
+            #     sign: 123
+
+            # - name: tcp
+            #   key: example_tcp
+            #   properties:
+            #     hosts: 127.0.0.1:9001,127.0.0.1:9001
+            #     serviceUrl: http://127.0.0.1:9001/sync
+            #     poolSize: 1
+            #     sign: 123

@@ -1,0 +1,251 @@
+/**
+ * Created by Wu Jian Ping on - 2021/09/28.
+ */
+
+package com.alibaba.otter.canal.client.adapter.tcp;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.otter.canal.client.adapter.OuterAdapter;
+import com.alibaba.otter.canal.client.adapter.support.Dml;
+import com.alibaba.otter.canal.client.adapter.support.EtlResult;
+import com.alibaba.otter.canal.client.adapter.support.OuterAdapterConfig;
+import com.alibaba.otter.canal.client.adapter.support.SPI;
+
+import com.alibaba.otter.canal.client.adapter.tcp.config.MappingConfig;
+import com.alibaba.otter.canal.client.adapter.tcp.config.MappingConfigLoader;
+import com.alibaba.otter.canal.client.adapter.tcp.config.MappingConfig.MonitorTable;
+import com.alibaba.otter.canal.client.adapter.tcp.monitor.TcpConfigMonitor;
+import com.alibaba.otter.canal.client.adapter.tcp.support.TcpTemplate;
+import com.alibaba.otter.canal.client.adapter.tcp.service.TcpEtlService;
+import com.alibaba.otter.canal.client.adapter.tcp.service.TcpSyncService;
+
+@SPI("tcp")
+public class TcpAdapter implements OuterAdapter {
+
+    private static Logger logger = LoggerFactory.getLogger(TcpAdapter.class);
+
+    private Map<String, MappingConfig> mappingConfig = new ConcurrentHashMap<>();
+    private Map<String, Map<String, MappingConfig>> mappingConfigCache = new ConcurrentHashMap<>();
+
+    private TcpTemplate tcpTemplate;
+
+    private TcpSyncService tcpSyncService;
+
+    private TcpConfigMonitor configMonitor;
+
+    private Properties envProperties;
+
+    public Map<String, MappingConfig> getTcpMapping() {
+        return this.mappingConfig;
+    }
+
+    public Map<String, Map<String, MappingConfig>> getMappingConfigCache() {
+        return mappingConfigCache;
+    }
+
+    @Override
+    public void init(OuterAdapterConfig configuration, Properties envProperties) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("init tcp adapter");
+            logger.debug("OuterAdapterConfig: {}", JSON.toJSONString(configuration));
+        }
+
+        Map<String, String> properties = configuration.getProperties();
+        String hosts = properties.get("hosts");
+        int poolSize = Integer.parseInt(properties.get("poolSize"));
+        String serviceUrl = properties.get("serviceUrl");
+        String sign = properties.get("sign");
+
+        try {
+            this.envProperties = envProperties;
+            Map<String, MappingConfig> tcpMappingTmp = MappingConfigLoader.load(envProperties);
+
+            // 这边的key是tcp目录下的fileName
+            tcpMappingTmp.forEach((key, config) -> {
+                if ((config.getOuterAdapterKey() == null && configuration.getKey() == null)
+                        || (config.getOuterAdapterKey() != null
+                                && config.getOuterAdapterKey().equalsIgnoreCase(configuration.getKey()))) {
+
+                    this.mappingConfig.put(key, config);
+                }
+            });
+
+            for (Map.Entry<String, MappingConfig> entry : this.mappingConfig.entrySet()) {
+                String configName = entry.getKey();
+                MappingConfig mappingConfig = entry.getValue();
+                String k;
+                if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                    k = StringUtils.trimToEmpty(mappingConfig.getDestination()) + "-"
+                            + StringUtils.trimToEmpty(mappingConfig.getGroupId());
+                } else {
+                    k = StringUtils.trimToEmpty(mappingConfig.getDestination());
+                }
+                Map<String, MappingConfig> configMap = mappingConfigCache.computeIfAbsent(k,
+                        k1 -> new ConcurrentHashMap<>());
+                configMap.put(configName, mappingConfig);
+
+            }
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("mappingConfig: {}", JSON.toJSONString(this.mappingConfig));
+                logger.debug("mappingConfigCache: {}", JSON.toJSONString(this.mappingConfigCache));
+            }
+
+            this.tcpTemplate = new TcpTemplate(hosts, poolSize, serviceUrl, sign);
+            this.tcpSyncService = new TcpSyncService(this.tcpTemplate);
+
+            this.configMonitor = new TcpConfigMonitor();
+            this.configMonitor.init(this, envProperties);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void sync(List<Dml> dmls) {
+        if (dmls == null || dmls.isEmpty()) {
+            return;
+        }
+        for (Dml dml : dmls) {
+            if (dml == null) {
+                return;
+            }
+
+            // if (logger.isDebugEnabled()) {
+            // logger.debug("TCP DML: {}", JSON.toJSONString(dml,
+            // SerializerFeature.WriteMapNullValue));
+            // }
+
+            String destination = StringUtils.trimToEmpty(dml.getDestination());
+            String groupId = StringUtils.trimToEmpty(dml.getGroupId());
+
+            Map<String, MappingConfig> configMap;
+            if (envProperties != null && !"tcp".equalsIgnoreCase(envProperties.getProperty("canal.conf.mode"))) {
+                configMap = mappingConfigCache.get(destination + "-" + groupId);
+            } else {
+                configMap = mappingConfigCache.get(destination);
+            }
+
+            if (configMap != null) {
+                List<MappingConfig> configs = new ArrayList<>();
+                configMap.values().forEach(config -> {
+                    boolean matchGroup = false;
+                    if (StringUtils.isNotEmpty(config.getGroupId())) {
+                        if (config.getGroupId().equals(dml.getGroupId())) {
+                            matchGroup = true;
+                        }
+                    } else {
+                        matchGroup = true;
+                    }
+
+                    if (matchGroup) {
+                        // 这边根据monitorTables决定是否需要同步
+                        String tableName = dml.getDatabase() + "." + dml.getTable();
+                        List<MonitorTable> monitorTables = config.getTcpMapping().getMonitorTables();
+                        boolean shouldSync = false;
+
+                        for (MonitorTable monitorTable : monitorTables) {
+                            // 假如当前表在配置的监控表列表中
+                            if (monitorTable.getTableName().equalsIgnoreCase(tableName)) {
+                                List<String> actions = monitorTable.getActions();
+                                // 假如没有配置action, 则认为需要同步
+                                if (actions == null || actions.size() == 0) {
+                                    shouldSync = true;
+                                } else {
+                                    // 假如配置的actions, 则需要看一下当前action是否在列表中
+                                    for (String action : actions) {
+                                        if (action.equalsIgnoreCase(dml.getType())) {
+                                            shouldSync = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 只要命中一个就跳出循环
+                            if (shouldSync) {
+                                break;
+                            }
+                        }
+
+                        if (shouldSync) {
+                            configs.add(config);
+                        }
+                    }
+                });
+                if (!configs.isEmpty()) {
+                    configs.forEach(config -> tcpSyncService.sync(config, dml));
+                }
+            }
+        }
+    }
+
+    @Override
+    public EtlResult etl(String task, List<String> params) {
+        EtlResult etlResult = new EtlResult();
+        MappingConfig config = this.mappingConfig.get(task);
+        TcpEtlService tcpEtlService = new TcpEtlService(this.tcpTemplate, config);
+        if (config != null) {
+            return tcpEtlService.importData(params);
+        } else {
+            StringBuilder resultMsg = new StringBuilder();
+            boolean resSucc = true;
+            for (MappingConfig configTmp : this.mappingConfig.values()) {
+                // 取所有的destination为task的配置
+                if (configTmp.getDestination().equals(task)) {
+                    EtlResult etlRes = tcpEtlService.importData(params);
+                    if (!etlRes.getSucceeded()) {
+                        resSucc = false;
+                        resultMsg.append(etlRes.getErrorMessage()).append("\n");
+                    } else {
+                        resultMsg.append(etlRes.getResultMessage()).append("\n");
+                    }
+                }
+            }
+            if (resultMsg.length() > 0) {
+                etlResult.setSucceeded(resSucc);
+                if (resSucc) {
+                    etlResult.setResultMessage(resultMsg.toString());
+                } else {
+                    etlResult.setErrorMessage(resultMsg.toString());
+                }
+                return etlResult;
+            }
+        }
+        etlResult.setSucceeded(false);
+        etlResult.setErrorMessage("Task not found");
+        return etlResult;
+    }
+
+    @Override
+    public Map<String, Object> count(String task) {
+        int count = this.tcpTemplate.count();
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("count", count);
+        return res;
+    }
+
+    @Override
+    public String getDestination(String task) {
+        MappingConfig config = mappingConfig.get(task);
+        if (config != null && config.getTcpMapping() != null) {
+            return config.getDestination();
+        }
+        return null;
+    }
+
+    @Override
+    public void destroy() {
+        if (this.configMonitor != null) {
+            this.configMonitor.destroy();
+        }
+    }
+}

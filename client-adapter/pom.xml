@@ -25,6 +25,7 @@
         <module>kudu</module>
         <module>http</module>
         <module>grpc</module>
+        <module>tcp</module>
     </modules>
 
     <licenses>
