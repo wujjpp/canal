@@ -6,6 +6,7 @@ package com.alibaba.otter.canal.client.adapter.http.support;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +17,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+
+import java.util.ArrayList;
 
 public class HttpTemplate {
     private static Logger logger = LoggerFactory.getLogger(HttpTemplate.class);
@@ -31,19 +35,26 @@ public class HttpTemplate {
     }
 
     public void insert(String database, String table, Map<String, Object> data) {
-        this.runAsync(database, table, "insert", data);
+        List<Map<String, Object>> items = new ArrayList<>();
+        items.add(data);
+        this.runAsync(database, table, "insert", items, null);
     }
 
     public void update(String database, String table, Map<String, Object> data) {
-        this.runAsync(database, table, "update", data);
+        List<Map<String, Object>> items = new ArrayList<>();
+        items.add(data);
+        this.runAsync(database, table, "update", items, null);
 
     }
 
     public void delete(String database, String table, Map<String, Object> data) {
-        this.runAsync(database, table, "delete", data);
+        List<Map<String, Object>> items = new ArrayList<>();
+        items.add(data);
+        this.runAsync(database, table, "delete", items, null);
     }
 
-    public CompletableFuture<Boolean> runAsync(String database, String table, String action, Map<String, Object> data) {
+    public CompletableFuture<Boolean> runAsync(String database, String table, String action,
+            List<Map<String, Object>> data, AtomicLong impCount) {
         try {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("database", database);
@@ -58,6 +69,10 @@ public class HttpTemplate {
 
             HttpRequest.post(this.serviceUrl).contentType("application/json;charset=UTF-8")
                     .send(JSON.toJSONString(body, SerializerFeature.WriteMapNullValue)).code();
+
+            if (impCount != null) {
+                impCount.addAndGet(data.size());
+            }
 
             return completedFuture(true);
         } catch (Exception e) {

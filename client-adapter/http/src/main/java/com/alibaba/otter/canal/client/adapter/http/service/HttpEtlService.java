@@ -126,6 +126,7 @@ public class HttpEtlService extends AbstractEtlService {
 
             Util.sqlRS(ds, sql, values, rs -> {
                 try {
+                    List<Map<String, Object>> cachedData = new ArrayList<>();
                     while (rs.next()) {
                         // 理论上不搞锁也没关系
                         if (columns.size() == 0) {
@@ -145,8 +146,20 @@ public class HttpEtlService extends AbstractEtlService {
                             data.put(col, rs.getObject(col));
                         }
 
+                        cachedData.add(data);
+
+                        if (cachedData.size() >= this.config.getHttpMapping().getEtlSetting().getBatchSize()) {
+                            List<Map<String, Object>> tempCachedData = cachedData;
+                            CompletableFuture<Boolean> future = this.httpTemplate.runAsync(etlSetting.getDatabase(),
+                                    etlSetting.getTable(), "update", tempCachedData, impCount);
+                            futures.add(future);
+                            cachedData = new ArrayList<>();
+                        }
+                    }
+
+                    if (cachedData.size() > 0) {
                         CompletableFuture<Boolean> future = this.httpTemplate.runAsync(etlSetting.getDatabase(),
-                                etlSetting.getTable(), "update", data);
+                                etlSetting.getTable(), "update", cachedData, impCount);
                         futures.add(future);
                     }
                 } catch (Exception e) {
@@ -158,9 +171,7 @@ public class HttpEtlService extends AbstractEtlService {
             });
 
             for (CompletableFuture<Boolean> future : futures) {
-                if (future.get()) {
-                    impCount.incrementAndGet();
-                }
+                future.get();
             }
             return true;
         } catch (Exception e) {
