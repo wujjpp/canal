@@ -55,6 +55,11 @@ public class HttpTemplate {
 
     public CompletableFuture<Boolean> runAsync(String database, String table, String action,
             List<Map<String, Object>> data, AtomicLong impCount) {
+        return completedFuture(execute(database, table, action, data, impCount));
+    }
+
+    public boolean execute(String database, String table, String action, List<Map<String, Object>> data,
+            AtomicLong impCount) {
         try {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("database", database);
@@ -74,10 +79,10 @@ public class HttpTemplate {
                 impCount.addAndGet(data.size());
             }
 
-            return completedFuture(true);
+            return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return completedFuture(false);
+            return false;
         }
     }
 

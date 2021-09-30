@@ -110,6 +110,7 @@ public class MappingConfig implements AdapterConfig {
         private String table;
         private String condition;
         private int batchSize = 1000;
+        private int threads = Runtime.getRuntime().availableProcessors();
 
         public String getDatabase() {
             return this.database;
@@ -141,6 +142,14 @@ public class MappingConfig implements AdapterConfig {
 
         public void setBatchSize(int batchSize) {
             this.batchSize = batchSize;
+        }
+
+        public int getThreads() {
+            return this.threads;
+        }
+
+        public void setThreads(int threads) {
+            this.threads = threads;
         }
     }
 
