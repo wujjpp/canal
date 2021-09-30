@@ -160,7 +160,7 @@ public class HttpEtlService extends AbstractEtlService {
 
                             Future<Boolean> future = executor
                                     .submit(() -> this.httpTemplate.execute(etlSetting.getDatabase(),
-                                            etlSetting.getTable(), "update", tempCachedData, impCount));
+                                            etlSetting.getTable(), "update", tempCachedData, impCount, "etl"));
 
                             futures.add(future);
                         }
@@ -174,7 +174,7 @@ public class HttpEtlService extends AbstractEtlService {
 
                         Future<Boolean> future = executor
                                 .submit(() -> this.httpTemplate.execute(etlSetting.getDatabase(), etlSetting.getTable(),
-                                        "update", tempCachedData, impCount));
+                                        "update", tempCachedData, impCount, "etl"));
 
                         futures.add(future);
                     }
