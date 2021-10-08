@@ -19,8 +19,6 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
-
 import java.util.ArrayList;
 
 public class HttpTemplate {
@@ -53,9 +51,11 @@ public class HttpTemplate {
         this.runAsync(database, table, "delete", items, null);
     }
 
-    public CompletableFuture<Boolean> runAsync(String database, String table, String action,
-            List<Map<String, Object>> data, AtomicLong impCount) {
-        return completedFuture(execute(database, table, action, data, impCount, "sync"));
+    public void runAsync(String database, String table, String action, List<Map<String, Object>> data,
+            AtomicLong impCount) {
+        CompletableFuture.supplyAsync(() -> {
+            return execute(database, table, action, data, impCount, "sync");
+        });
     }
 
     public boolean execute(String database, String table, String action, List<Map<String, Object>> data,
