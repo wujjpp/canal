@@ -51,7 +51,10 @@ public class HttpTemplate {
                     .send(JSON.toJSONString(body, SerializerFeature.WriteMapNullValue)).code();
 
             if (impCount != null) {
-                impCount.addAndGet(dmls.size());
+                long total = impCount.addAndGet(dmls.size());
+                if (logger.isInfoEnabled()) {
+                    logger.info("Complete Count: {}", total);
+                }
             }
 
             return true;
