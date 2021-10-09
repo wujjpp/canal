@@ -65,7 +65,7 @@ public class HttpSyncService {
             }
 
             if (list.size() > 0) {
-                this.httpTemplate.runAsync(list);
+                this.httpTemplate.runAsync("sync", list);
             }
         }
     }

@@ -30,28 +30,9 @@ public class HttpTemplate {
         this.sign = sign;
     }
 
-    // public void insert(String database, String table, Map<String, Object> data) {
-    // List<Map<String, Object>> items = new ArrayList<>();
-    // items.add(data);
-    // this.runAsync(database, table, "insert", items, null);
-    // }
-
-    // public void update(String database, String table, Map<String, Object> data) {
-    // List<Map<String, Object>> items = new ArrayList<>();
-    // items.add(data);
-    // this.runAsync(database, table, "update", items, null);
-
-    // }
-
-    // public void delete(String database, String table, Map<String, Object> data) {
-    // List<Map<String, Object>> items = new ArrayList<>();
-    // items.add(data);
-    // this.runAsync(database, table, "delete", items, null);
-    // }
-
-    public void runAsync(List<Map<String, Object>> dmls) {
-        CompletableFuture.supplyAsync(() -> {
-            return execute("sync", dmls, null);
+    public CompletableFuture<Boolean> runAsync(String mode, List<Map<String, Object>> dmls) {
+        return CompletableFuture.supplyAsync(() -> {
+            return execute(mode, dmls, null);
         });
     }
 
