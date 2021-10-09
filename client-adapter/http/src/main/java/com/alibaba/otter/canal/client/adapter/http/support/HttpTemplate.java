@@ -19,8 +19,6 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
-import java.util.ArrayList;
-
 public class HttpTemplate {
     private static Logger logger = LoggerFactory.getLogger(HttpTemplate.class);
 
@@ -32,42 +30,37 @@ public class HttpTemplate {
         this.sign = sign;
     }
 
-    public void insert(String database, String table, Map<String, Object> data) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        items.add(data);
-        this.runAsync(database, table, "insert", items, null);
-    }
+    // public void insert(String database, String table, Map<String, Object> data) {
+    // List<Map<String, Object>> items = new ArrayList<>();
+    // items.add(data);
+    // this.runAsync(database, table, "insert", items, null);
+    // }
 
-    public void update(String database, String table, Map<String, Object> data) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        items.add(data);
-        this.runAsync(database, table, "update", items, null);
+    // public void update(String database, String table, Map<String, Object> data) {
+    // List<Map<String, Object>> items = new ArrayList<>();
+    // items.add(data);
+    // this.runAsync(database, table, "update", items, null);
 
-    }
+    // }
 
-    public void delete(String database, String table, Map<String, Object> data) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        items.add(data);
-        this.runAsync(database, table, "delete", items, null);
-    }
+    // public void delete(String database, String table, Map<String, Object> data) {
+    // List<Map<String, Object>> items = new ArrayList<>();
+    // items.add(data);
+    // this.runAsync(database, table, "delete", items, null);
+    // }
 
-    public void runAsync(String database, String table, String action, List<Map<String, Object>> data,
-            AtomicLong impCount) {
+    public void runAsync(List<Map<String, Object>> dmls) {
         CompletableFuture.supplyAsync(() -> {
-            return execute(database, table, action, data, impCount, "sync");
+            return execute("sync", dmls, null);
         });
     }
 
-    public boolean execute(String database, String table, String action, List<Map<String, Object>> data,
-            AtomicLong impCount, String mode) {
+    public boolean execute(String mode, List<Map<String, Object>> dmls, AtomicLong impCount) {
         try {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("mode", mode);
-            body.put("database", database);
-            body.put("table", table);
-            body.put("action", action);
-            body.put("data", data);
             body.put("sign", this.sign);
+            body.put("dmls", dmls);
 
             if (logger.isDebugEnabled()) {
                 logger.debug("{}", JSON.toJSONString(body, SerializerFeature.WriteMapNullValue));
@@ -77,7 +70,7 @@ public class HttpTemplate {
                     .send(JSON.toJSONString(body, SerializerFeature.WriteMapNullValue)).code();
 
             if (impCount != null) {
-                impCount.addAndGet(data.size());
+                impCount.addAndGet(dmls.size());
             }
 
             return true;

@@ -128,7 +128,7 @@ public class HttpEtlService extends AbstractEtlService {
             List<Future<Boolean>> futures = new ArrayList<>();
             Util.sqlRS(ds, sql, values, rs -> {
                 try {
-                    final List<Map<String, Object>> cachedData = new ArrayList<>();
+                    final List<Map<String, Object>> cachedDmls = new ArrayList<>();
                     while (rs.next()) {
                         // 理论上不搞锁也没关系
                         if (columns.size() == 0) {
@@ -148,33 +148,37 @@ public class HttpEtlService extends AbstractEtlService {
                             data.put(col, rs.getObject(col));
                         }
 
-                        cachedData.add(data);
+                        Map<String, Object> item = new LinkedHashMap<>();
+                        item.put("database", etlSetting.getDatabase());
+                        item.put("table", etlSetting.getTable());
+                        item.put("action", "update");
+                        item.put("data", data);
 
-                        if (cachedData.size() >= etlSetting.getBatchSize()) {
-                            List<Map<String, Object>> tempCachedData = new ArrayList<>();
-                            for (Map<String, Object> o : cachedData) {
-                                tempCachedData.add(o);
+                        cachedDmls.add(item);
+
+                        if (cachedDmls.size() >= etlSetting.getBatchSize()) {
+                            List<Map<String, Object>> tempCachedDmls = new ArrayList<>();
+                            for (Map<String, Object> o : cachedDmls) {
+                                tempCachedDmls.add(o);
                             }
 
-                            cachedData.clear();
+                            cachedDmls.clear();
 
                             Future<Boolean> future = executor
-                                    .submit(() -> this.httpTemplate.execute(etlSetting.getDatabase(),
-                                            etlSetting.getTable(), "update", tempCachedData, impCount, "etl"));
+                                    .submit(() -> this.httpTemplate.execute("etl", tempCachedDmls, impCount));
 
                             futures.add(future);
                         }
                     }
 
-                    if (cachedData.size() > 0) {
-                        List<Map<String, Object>> tempCachedData = new ArrayList<>();
-                        for (Map<String, Object> o : cachedData) {
-                            tempCachedData.add(o);
+                    if (cachedDmls.size() > 0) {
+                        List<Map<String, Object>> tempCachedDmls = new ArrayList<>();
+                        for (Map<String, Object> o : cachedDmls) {
+                            tempCachedDmls.add(o);
                         }
 
                         Future<Boolean> future = executor
-                                .submit(() -> this.httpTemplate.execute(etlSetting.getDatabase(), etlSetting.getTable(),
-                                        "update", tempCachedData, impCount, "etl"));
+                                .submit(() -> this.httpTemplate.execute("etl", tempCachedDmls, impCount));
 
                         futures.add(future);
                     }
