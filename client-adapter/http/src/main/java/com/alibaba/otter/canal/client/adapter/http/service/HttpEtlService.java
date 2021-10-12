@@ -165,7 +165,8 @@ public class HttpEtlService extends AbstractEtlService {
                             cachedDmls.clear();
 
                             Future<Boolean> future = executor
-                                    .submit(() -> this.httpTemplate.execute("etl", tempCachedDmls, impCount));
+                                    .submit(() -> this.httpTemplate.execute("etl", this.config.getDestination(),
+                                            this.config.getDataSourceKey(), tempCachedDmls, impCount));
 
                             futures.add(future);
                         }
@@ -178,7 +179,8 @@ public class HttpEtlService extends AbstractEtlService {
                         }
 
                         Future<Boolean> future = executor
-                                .submit(() -> this.httpTemplate.execute("etl", tempCachedDmls, impCount));
+                                .submit(() -> this.httpTemplate.execute("etl", this.config.getDestination(),
+                                        this.config.getOuterAdapterKey(), tempCachedDmls, impCount));
 
                         futures.add(future);
                     }

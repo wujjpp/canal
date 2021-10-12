@@ -30,17 +30,21 @@ public class HttpTemplate {
         this.sign = sign;
     }
 
-    public CompletableFuture<Boolean> runAsync(String mode, List<Map<String, Object>> dmls) {
+    public CompletableFuture<Boolean> runAsync(String mode, String destination, String outerAdapterKey,
+            List<Map<String, Object>> dmls) {
         return CompletableFuture.supplyAsync(() -> {
-            return execute(mode, dmls, null);
+            return execute(mode, destination, outerAdapterKey, dmls, null);
         });
     }
 
-    public boolean execute(String mode, List<Map<String, Object>> dmls, AtomicLong impCount) {
+    public boolean execute(String mode, String destination, String outerAdapterKey, List<Map<String, Object>> dmls,
+            AtomicLong impCount) {
         try {
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("mode", mode);
             body.put("sign", this.sign);
+            body.put("destination", destination);
+            body.put("outerAdapterKey", outerAdapterKey);
             body.put("dmls", dmls);
 
             if (logger.isDebugEnabled()) {
