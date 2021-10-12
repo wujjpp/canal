@@ -166,7 +166,7 @@ public class HttpEtlService extends AbstractEtlService {
 
                             Future<Boolean> future = executor
                                     .submit(() -> this.httpTemplate.execute("etl", this.config.getDestination(),
-                                            this.config.getDataSourceKey(), tempCachedDmls, impCount));
+                                            this.config.getOuterAdapterKey(), tempCachedDmls, impCount));
 
                             futures.add(future);
                         }
